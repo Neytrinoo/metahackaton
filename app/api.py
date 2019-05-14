@@ -24,10 +24,10 @@ class AuthResource(Resource):
         print(telegram_id)
         user = User.query.filter_by(telegram_id=telegram_id).first()
         print(user, user.id, user.telegram_id)
-        if user is not None:
+        if user:
             return jsonify({"token": user.token})
         user = User.query.filter_by(username=username).first()
-        if user is None:
+        if not user:
             abort(404, message="No such User")
         if user.check_password(password):
             user.telegram_id = telegram_id
