@@ -7,10 +7,12 @@ import requests
 
 from flask import Flask
 
+url = "https://kindcode.com"
+
 
 class Task:
 
-    def __init__(self):
+    def __init__(self, id):
         self.name = None
         self.description = None
         self.category = None
@@ -20,7 +22,8 @@ class Task:
         return json.dumps({"name": self.name,
                            "description": self.description,
                            "category": self.category,
-                           "date_time": self.date_time})
+                           "date_execution": self.date_time,
+                           })
 
 
 session_storage = {}
@@ -69,40 +72,59 @@ def recieved_message(updater, bot):
         if isDate(resp):
             session_storage[user_id]["tmp_task"] = resp
             task = session_storage[user_id]["tmp_task"].get_json()
-            # TODO code post request
-            requests.post("https://api.com/", data={"task": task})
+            data = requests.post(f"{url}/api/task/", data={"name": task})
+            if data.status_code == 200:
+                updater.message.reply_text("Добавлено")
+            else:
+                updater.message.reply_text("Неверные данные!")
         else:
             updater.message.reply_text(resp)
 
 
 def recieved_command(updater, bot):
+    user_id = updater.message.from_user.id
     if updater.message.text == "/start":
         updater.message.reply_text("Здравствуйте! Авторизуйтесь с помощью команды /auth <Логин> <Пароль>")
         session_storage[updater.message.from_user.id] = {
             "api_key": None,
             "last_operation": -1,
-            "tmp_task": None
+            "tmp_task": None,
+            "id": None
         }
     elif updater.message.text.startswith("/auth"):
         _, login, password = updater.message.text.split()
-        # TODO Auth to rest with login and password. Get token to do smth.
-        success = True
-        if success:
-            session_storage[updater.message.from_user.id]["api_key"] = "api"
+        resp = requests.post(f"{url}/api/auth", data={"username": login,
+                                                      "password": password})
+        if resp.status_code == 200:
+            session_storage[updater.message.from_user.id]["api_key"] = resp.content
             session_storage[updater.message.from_user.id]["last_operation"] = 0
-    elif updater.message.text == "/task":
-        pass
-        # TODO Get task list from rest
-    elif updater.message.text == "/expired_task":
-        pass
-        # TODO Get expired tasks list from rest
-    elif updater.message.text == "/add_task":
+            updater.message.reply_text("Успешная авторизация!")
+        else:
+            updater.message.reply_text("Неверные данные для входа!")
+    elif updater.message.text == "/task" and session_storage[user_id]["api_key"]:
+        resp = requests.get(f"{url}/api/tasks", data={"token": session_storage[user_id]["api_key"]}).json()
+        for task in resp:
+            updater.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
+                               f"\nДата сдачи:{task['execution_phase']})")
+    elif updater.message.text == "/expired_task" and session_storage[user_id]["api_key"]:
+        resp = requests.get(f"{url}/api/tasks", data={"token": session_storage[user_id]["api_key"]}).json()
+        for task in resp:
+            if task['date_execution'] <= datetime.datetime.now():
+                updater.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
+                                   f"\nДата сдачи:{task['execution_phase']})")
+    elif updater.message.text == "/add_task" and session_storage[user_id]["api_key"]:
         updater.message.reply_text("Добавим задачу в систему. Введите название задачи.")
         session_storage[updater.message.from_user.id]["last_operation"] = 1
         session_storage[updater.message.from_user.id]["tmp_task"] = Task()
-    elif updater.message.text.startswith("/delegate_task"):
+    elif updater.message.text.startswith("/delegate_task") and session_storage[user_id]["api_key"]:
         _, task_id, user_id = updater.message.text.split()
-        # TODO Task delegation by task_id to user with user_id
+        resp = requests.put(f"{url}/api/task/{task_id}", data={"performer_id": user_id})
+        if resp.status_code == 200:
+            updater.message.reply_text("Изменено")
+        elif resp.status_code == 404:
+            updater.message.reply_text("Такой задачи не существует")
+        else:
+            updater.message.reply_text("Произошла ошибка!")
 
 
 def main():
