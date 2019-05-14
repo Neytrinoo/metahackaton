@@ -1,6 +1,6 @@
 from flask import Flask, request
 import logging
-
+import requests
 import json
 
 app = Flask(__name__)
@@ -13,12 +13,8 @@ def user_in_system(id):
     return False
 
 
-def log_in_1(login):
-    return True
-
-
-def log_in_2(password):
-    return True
+def log_in(login):
+    return True, 'qqq'
 
 
 def get_list(id):
@@ -81,29 +77,22 @@ def handle_dialog(req, res):
                 'id': None,
                 'token': None
             }
-            res['response']['text'] = 'Привет! Введи свой логин'
+            res['response']['text'] = 'Привет! Введи свой логин и пароль'
 
             res['response']['buttons'] = get_suggests(user_id)
             return
         else:
             'Здравствуйте!'
 
-
     if not sessionStorage[user_id]['login']:
-        result = log_in_1(req['request']['original_utterance'])
+        login, password = req['request']['original_utterance'].split()
+        result, token = log_in(login, password)
         if result:
-            res['response']['text'] = 'Теперь пароль'
-            sessionStorage[user_id]['login'] = req['request']['original_utterance']
+            res['response']['text'] = 'Отлично'
+            sessionStorage[user_id]['login'] = login
+            sessionStorage[user_id]['password'] = password
         else:
-            res['response']['text'] = 'Пользователь не найден'
-    elif not sessionStorage[user_id]['password']:
-        result = log_in_2(req['request']['original_utterance'])
-        if result:
-            res['response']['text'] = 'Добро пожаловать'
-            sessionStorage[user_id]['password'] = req['request']['original_utterance']
-        else:
-            res['response']['text'] = 'Пароль неверный'
-
+            res['response']['text'] = sessionStorage[user_id]["token"] = token
     elif req['request']['original_utterance'].lower() == 'покажи мои задачи':
         worklist = get_list(user_id)
         res['response']['text'] = worklist
@@ -112,8 +101,6 @@ def handle_dialog(req, res):
         worklist = get_last_list(user_id)
         res['response']['text'] = worklist
         return
-
-
 
 
 def get_suggests(user_id):
