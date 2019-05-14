@@ -1,5 +1,7 @@
 from flask import jsonify
-from flask_restful import Resource, abort, reqparse
+from app import app, db
+from app.models import *
+from flask_restful import Resource, abort, reqparse, Api
 
 api = Api(app)
 
@@ -15,8 +17,9 @@ class AuthResource(Resource):
     @staticmethod
     def post():
         args = auth_parser.parse_args()
-        username = args.get["username"]
-        password = args.get["password"]
+        username = args["username"]
+        password = args["password"]
+        print(username, password)
         user = User.query.filter_by(username=username).first()
         if not user:
             abort(404, message="No such User")
@@ -52,40 +55,70 @@ post_task_parser.add_argument("date_execution")
 class TaskResource(Resource):
 
     @staticmethod
-    def get(task_id=None):
+    def get():
         args = task_parser.parse_args()
         user = User.query.filter_by(token=args["token"]).first()
         if not user:
             abort(404, message="User not found")
-        if not task_id:
-            tasks = Task.query.filter_by(author_id=user.id).all()
-            return jsonify({"tasks": [{"id": task.id,
-                                       "name": task.name,
-                                       "category": task.category,
-                                       "description": task.description,
-                                       "date_execution": task.date_execution,
-                                       "author_id": task.author_id,
-                                       "performer_id": task.performer_id,
-                                       "priority": task.priority,
-                                       "execution_phase": task.execution_phase,
-                                       "todo_or_not_todo": task.todo_or_not_todo
-                                       } for task in tasks]})
-        else:
-            task = Task.query.filter_by(id=task_id).first()
-            if not task:
-                abort(404, message="Not found")
-            return jsonify({"task": {
-                "id": task.id,
-                "name": task.name,
-                "category": task.category,
-                "description": task.description,
-                "date_execution": task.date_execution,
-                "author_id": task.author_id,
-                "performer_id": task.performer_id,
-                "priority": task.priority,
-                "execution_phase": task.execution_phase,
-                "todo_or_not_todo": task.todo_or_not_todo
-            }})
+        tasks = Task.query.filter_by(author_id=user.id).all()
+        return jsonify({"tasks": [{"id": task.id,
+                                   "name": task.name,
+                                   "category": task.category,
+                                   "description": task.description,
+                                   "date_execution": task.date_execution,
+                                   "author_id": task.author_id,
+                                   "performer_id": task.performer_id,
+                                   "priority": task.priority,
+                                   "execution_phase": task.execution_phase,
+                                   "todo_or_not_todo": task.todo_or_not_todo
+                                   } for task in tasks]})
+
+    @staticmethod
+    def post():
+        args = post_task_parser.parse_args()
+        user = User.query.filter_by(api_key=args["token"]).first()
+        if not user:
+            abort(403, message="Wrong User")
+        try:
+            task = Task(name=args["name"],
+                        description=args["description"],
+                        date_execution=args["date_execution"],
+                        author_id=user.id,
+                        performer_id=user.id,
+                        category=args.get("category", ""),
+                        priority="0",
+                        execution_phase="0",
+                        todo_or_not_todo=False)
+            db.session.add(task)
+            db.session.commit()
+            return "OK!"
+        except Exception:
+            abort(400, message="Wrong data")
+
+
+class TaskResourceOne(Resource):
+
+    @staticmethod
+    def get(task_id):
+        args = task_parser.parse_args()
+        user = User.query.filter_by(token=args["token"]).first()
+        if not user:
+            abort(404, message="User not found")
+        task = Task.query.filter_by(id=task_id).first()
+        if not task:
+            abort(404, message="Not found")
+        return jsonify({"task": {
+            "id": task.id,
+            "name": task.name,
+            "category": task.category,
+            "description": task.description,
+            "date_execution": task.date_execution,
+            "author_id": task.author_id,
+            "performer_id": task.performer_id,
+            "priority": task.priority,
+            "execution_phase": task.execution_phase,
+            "todo_or_not_todo": task.todo_or_not_todo
+        }})
 
     @staticmethod
     def put(task_id):
@@ -117,32 +150,15 @@ class TaskResource(Resource):
         user = User.query.filter_by(token=args["token"]).first()
         if not user:
             abort(404, message="User not found")
-        Task.query.filter_by(id=task_id).delete()
-        db.session.commit()
-
-    @staticmethod
-    def post():
-        args = post_task_parser.parse_args()
-        user = User.query.filter_by(api_key=args["token"]).first()
-        if not user:
-            abort(403, message="Wrong User")
-        try:
-            task = Task(name=args["name"],
-                        description=args["description"],
-                        date_execution=args["date_execution"],
-                        author_id=user.id,
-                        performer_id=user.id,
-                        category=args.get("category", ""),
-                        priority="0",
-                        execution_phase="0",
-                        todo_or_not_todo=False)
-            db.session.add(task)
+        task = Task.query.filter_by(id=task_id)
+        if task.first():
+            task.delete()
             db.session.commit()
             return "OK!"
-        except Exception:
-            abort(400, message="Wrong data")
+        else:
+            abort(404, message="Task Not Found")
 
 
 api.add_resource(TaskResource, '/api/task')
-api.add_resource(TaskResource, '/api/task/<int:id>')
+api.add_resource(TaskResourceOne, '/api/task/<int:id>')
 api.add_resource(AuthResource, '/api/auth')

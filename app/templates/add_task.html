@@ -62,7 +62,7 @@
         </p>
     <p>
             {{ form.meta_tags.label }}
-            {{ form.meta_tags(placeholder='Введите через запятую') }}
+            {{ form.meta_tags(placeholder='Введите через запятую', class='meta_tags') }}
             {% for error in form.meta_tags.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}

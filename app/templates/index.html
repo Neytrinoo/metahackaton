@@ -5,6 +5,10 @@
     Контесты
 {% endblock %}
 {% block content %}
+    <form action="{{ url_for('search_author_tasks') }}" method="get" class="search_form">
+            <input type="text" class="search_input" name="search_input">
+            <input class="search_button" type="submit">
+        </form>
     {% if not current_user.is_anonymous %}
         {% for i in range(tasks|length) %}
             {% if color_task[i] %}

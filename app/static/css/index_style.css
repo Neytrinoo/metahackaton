@@ -17,3 +17,9 @@
 .task p {
     color:white;
 }
+.search_form {
+    position: absolute;
+    margin-top: -40px;
+    margin-bottom: 40px;
+    margin-left: 200px;
+}

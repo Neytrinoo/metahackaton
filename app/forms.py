@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, FileField, DateField, TextAreaField, \
     MultipleFileField, RadioField, widgets, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Optional, ValidationError, Length
-from app.models import User
+from app.models import *
 from datetime import datetime, timezone, timedelta
 
 
@@ -52,7 +52,11 @@ class AddTask(FlaskForm):
     execution_phase = SelectField('Этап выполнения',
                                   choices=[('1', 'Только начал'), ('2', 'Кое-что готово'), ('3', 'Много что сделал'),
                                            ('4', 'Почти готова'), ('5', 'Полностью выполнена')])
-    category = StringField('Введите категорию задачи')
+    all_category = CategoryTask.query.all()
+    category_to_choise = []
+    for category in all_category:
+        category_to_choise.append((str(category.id), category.text))
+    category = SelectField('Выберите категорию задачи', choices=category_to_choise)
     meta_tags = StringField('Мета-теги: ')
     submit = SubmitField('Добавить задачу')
 
@@ -89,3 +93,8 @@ class EditTaskForm(FlaskForm):
     def validate_date_execution(self, date_execution):
         if (date_execution.data - datetime.now().date()).days < 0:
             raise ValidationError('Эта дата уже прошла, увы')
+
+
+class SearchForm(FlaskForm):
+    search = StringField()
+    submit = SubmitField()

@@ -1,9 +1,10 @@
 from app import app, db
 from flask import render_template, flash, redirect, url_for, request
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
 from flask_login import current_user, login_user, logout_user, login_required
 from app.forms import *
 from app.models import *
+import pymorphy2
 
 execution_phases = {1: 'Только начал',
                     2: 'Кое-что готово',
@@ -89,6 +90,7 @@ def last_task():
     return render_template('last_task.html', tasks=itogo_tasks, execution_phase=execution_phase, priority=priority,
                            todo_or_not_todo=todo_or_not_todo, color_task=color_task)
 
+
 @login_required
 @app.route('/task/<int:id>')
 def task_page(id):
@@ -143,6 +145,10 @@ def edit_task(id):
         task.priority = form.priority.data
         task.execution_phase = form.execution_phase.data
         task.category = form.category.data
+        if form.status.data == '1':
+            task.todo_or_not_todo = False
+        else:
+            task.todo_or_not_todo = True
         db.session.commit()
     form.task_name.data = task.name
     form.description.data = task.description
@@ -218,6 +224,113 @@ def add_task():
         return redirect(url_for('index'))
     return render_template('add_task.html', form=form, title='Добавление задачи')
 
+
+def task_delegate_search(search_text):
+    morph = pymorphy2.MorphAnalyzer()
+    search_text = search_text.split()
+    need_tags = []
+    task_tags = []
+    for line in search_text:
+        search_now = morph.parse(line.lower())[0].normal_form
+        if MetaTagsTask.query.filter_by(text=search_now).first() is not None:
+            need_tags.append(MetaTagsTask.query.filter_by(text=search_now).first())
+    task_tags_count = {}
+    for tag in need_tags:
+        for task in tag.tasks:
+            if task.performer_id == current_user.id:
+                if task not in task_tags_count:
+                    task_tags_count[task] = 1
+                else:
+                    task_tags_count[task] += 1
+    task_tags_count = list(reversed(sorted(task_tags_count.items(), key=lambda x: x[1])))
+    return ([x[0] for x in task_tags_count], need_tags)
+
+
+def task_search(search_text):
+    morph = pymorphy2.MorphAnalyzer()
+    search_text = search_text.split()
+    need_tags = []
+    task_tags = []
+    for line in search_text:
+        search_now = morph.parse(line.lower())[0].normal_form
+        if MetaTagsTask.query.filter_by(text=search_now).first() is not None:
+            need_tags.append(MetaTagsTask.query.filter_by(text=search_now).first())
+    task_tags_count = {}
+    for tag in need_tags:
+        for task in tag.tasks:
+            if task.author_id == current_user.id:
+                if task not in task_tags_count:
+                    task_tags_count[task] = 1
+                else:
+                    task_tags_count[task] += 1
+    task_tags_count = list(reversed(sorted(task_tags_count.items(), key=lambda x: x[1])))
+    return ([x[0] for x in task_tags_count], need_tags)
+
+
+# Функция поиска
+@app.route('/search-author-tasks')
+def search_author_tasks():
+    search_text = request.args.get('search_input')
+    copy_search_text = search_text
+    if not search_text:
+        flash('Поисковый запрос пуст')
+        return redirect(url_for('index'))
+    task_tags_count, need_tags = task_search(search_text)
+    copy_search_text = search_text
+    if not task_tags_count:
+        flash('Ничего не найдено')
+        return redirect(url_for('index'))
+    views_name = []
+    dates = []
+    execution_phase = []
+    priority = []
+    todo_or_not_todo = []
+    color_task = []
+    for task in task_tags_count:
+        if (task.date_execution - datetime.now()).days < -1:
+            color_task.append(False)
+        else:
+            color_task.append(True)
+        execution_phase.append(execution_phases[task.execution_phase])
+        priority.append(priotities[task.priority])
+        if task.todo_or_not_todo is None:
+            todo_or_not_todo.append('Не выполнена')
+        else:
+            todo_or_not_todo.append('Выполнена')
+    return render_template('index.html', tasks=task_tags_count, execution_phase=execution_phase, priority=priority,
+                           todo_or_not_todo=todo_or_not_todo, color_task=color_task)
+
+@app.route('/search-performer-tasks')
+def search_performer_tasks():
+    search_text = request.args.get('search_input')
+    copy_search_text = search_text
+    if not search_text:
+        flash('Поисковый запрос пуст')
+        return redirect(url_for('index'))
+    task_tags_count, need_tags = task_delegate_search(search_text)
+    copy_search_text = search_text
+    if not task_tags_count:
+        flash('Ничего не найдено')
+        return redirect(url_for('index'))
+    views_name = []
+    dates = []
+    execution_phase = []
+    priority = []
+    todo_or_not_todo = []
+    color_task = []
+    for task in task_tags_count:
+        if (task.date_execution - datetime.now()).days < -1:
+            color_task.append(False)
+        else:
+            color_task.append(True)
+        execution_phase.append(execution_phases[task.execution_phase])
+        priority.append(priotities[task.priority])
+        if task.todo_or_not_todo is None:
+            todo_or_not_todo.append('Не выполнена')
+        else:
+            todo_or_not_todo.append('Выполнена')
+    return render_template('index.html', tasks=task_tags_count, execution_phase=execution_phase, priority=priority,
+                           todo_or_not_todo=todo_or_not_todo, color_task=color_task)
 
 @app.route('/logout')
 @login_required
