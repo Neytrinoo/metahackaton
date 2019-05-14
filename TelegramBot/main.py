@@ -108,7 +108,10 @@ def recieved_command(bot, updater):
         if session_storage[user_id]["api_key"] is None:
             updater.message.reply_text("Войдите в аккаунт!")
     elif updater.message.text == "/task":
-        resp = requests.get(f"{url}/api/tasks", data={"token": session_storage[user_id]["api_key"]}).json()
+        resp = requests.get(f"{url}/api/tasks", data={"token": session_storage[user_id]["api_key"]}).json()["tasks"]
+        if not resp:
+            updater.message.reply_text("Нет задач!")
+            return 
         for task in resp:
             updater.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
                                f"\nДата сдачи:{task['execution_phase']})")
