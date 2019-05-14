@@ -95,7 +95,8 @@ def recieved_command(bot, updater):
         try:
             _, login, password = updater.message.text.split()
             resp = requests.post(f"{url}/api/auth", data={"username": login,
-                                                          "password": password})
+                                                          "password": password,
+                                                          "telegram_id": str(user_id)})
             if resp.status_code == 200:
                 session_storage[updater.message.from_user.id]["api_key"] = resp.json()['token']
                 session_storage[updater.message.from_user.id]["last_operation"] = 0

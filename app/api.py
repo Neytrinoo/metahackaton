@@ -10,6 +10,7 @@ marks = ["1", "2", "3", "4", "5"]
 auth_parser = reqparse.RequestParser()
 auth_parser.add_argument("username", required=True)
 auth_parser.add_argument("password", required=True)
+auth_parser.add_argument("telegram_id")
 
 
 class AuthResource(Resource):
@@ -19,11 +20,16 @@ class AuthResource(Resource):
         args = auth_parser.parse_args()
         username = args["username"]
         password = args["password"]
-        print(username, password)
+        telegram_id = args.get("telegram_id", None)
+        user = User.quert.filter_by(telegram_id=telegram_id).first()
+        if user:
+            return jsonify({"token": user.token})
         user = User.query.filter_by(username=username).first()
         if not user:
             abort(404, message="No such User")
         if user.check_password(password):
+            user.telegram_id = telegram_id
+            db.session.commit()
             return jsonify({"token": user.token})
         else:
             return abort(403, message="Wrong password")
