@@ -110,6 +110,7 @@ def recieved_command(bot, updater):
             return
     if updater.message.text == "/task":
         resp = requests.get(f"{url}/api/task", params={"token": session_storage[user_id]["api_key"]}).json()["tasks"]
+        print(resp)
         if not resp:
             updater.message.reply_text("Нет задач!")
             return
