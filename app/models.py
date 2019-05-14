@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100))
     password_hash = db.Column(db.String(400))
     token = db.Column(db.String(30))
+    telegram_id = db.Column(db.String(100))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
