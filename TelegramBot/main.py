@@ -5,9 +5,8 @@ import keys
 import apiai
 import requests
 
-from flask import Flask
 
-url = "https://kindcode.com"
+url = "http://neytrinoo.pythonanywhere.com"
 
 
 class Task:
