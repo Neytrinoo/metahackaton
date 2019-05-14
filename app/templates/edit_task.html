@@ -3,12 +3,12 @@
 {{title}}
 {% endblock %}
 {% block links %}
-<link rel="stylesheet" href="{{url_for('static', filename='css/login_style.css')}}">
+<link rel="stylesheet" href="{{url_for('static', filename='css/edit_task_style.css')}}">
 {% endblock %}
 {% block content %}
 
 <div class="background-center">
-    <p class="register_head_text">Добавление задачи</p>
+    <p class="register_head_text">Редактирование задачи</p>
     <form action="" method="post" novalidate class="form_register">
         {{ form.hidden_tag() }}
         <p>
@@ -46,6 +46,13 @@
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>
+    <p>
+            {{ form.status.label }}
+            {{ form.status() }}
+            {% for error in form.status.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
         <p>
             {{ form.priority.label }}
             {{ form.priority() }}
@@ -57,13 +64,6 @@
             {{ form.execution_phase.label }}
             {{ form.execution_phase() }}
             {% for error in form.execution_phase.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-    <p>
-            {{ form.meta_tags.label }}
-            {{ form.meta_tags(placeholder='Введите через запятую') }}
-            {% for error in form.meta_tags.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>

@@ -5,6 +5,7 @@
     Контесты
 {% endblock %}
 {% block content %}
+    <h1>Задачи, в которых вы - исполнитель</h1>
     {% if not current_user.is_anonymous %}
         {% for i in range(tasks|length) %}
             {% if color_task[i] %}

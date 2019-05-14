@@ -19,15 +19,18 @@
         <a href="{{url_for('login')}}" class="login">Войти</a>
         <a href="{{url_for('register')}}" class="sign_in">Зарегистрироваться</a>
         {% else %}
-        <div class="dropdown">
+        <div class="dropdown menu_down">
             <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Кнопка выпадающего списка
+                Меню
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="{{url_for('index')}}">Главная</a>
                 <a class="dropdown-item" href="{{url_for('add_task')}}">Добавить задачу</a>
+                <a class="dropdown-item" href="{{url_for('last_task')}}">Просроченные задачи</a>
                 <a class="dropdown-item" href="#">Мои задачи</a>
-                <a class="dropdown-item" href="#">Делегированные мне задачи</a>
+                <a class="dropdown-item" href="{{ url_for('delegated_tasks') }}">Делегированные мне задачи</a>
+                <a class="dropdown-item" href="{{url_for('logout')}}">Выйти</a>
             </div>
         </div>
         {%endif%}

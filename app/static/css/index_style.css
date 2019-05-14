@@ -1,0 +1,19 @@
+.task{
+    width: 1200px;
+    height: 300px;
+    background-color: blue;
+    margin-bottom: 40px;
+    margin-left: 40px;
+    border-radius: 10px;
+}
+.task_blue {
+    width: 1200px;
+    height: 300px;
+    background-color: red;
+    margin-bottom: 40px;
+    margin-left: 40px;
+    border-radius: 10px;
+}
+.task p {
+    color:white;
+}

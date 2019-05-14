@@ -3,6 +3,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from datetime import datetime
 
+meta_tags_task_table = db.Table('tags_task',
+                                  db.Column('task_id', db.Integer, db.ForeignKey('task.id')),
+                                  db.Column('meta_tag_task_id', db.Integer, db.ForeignKey('meta_tags_task.id'))
+                                  )
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,7 +34,14 @@ class Task(db.Model):
     category = db.Column(db.String(100))
     priority = db.Column(db.Integer)
     execution_phase = db.Column(db.Integer)
+    meta_tags = db.relationship('MetaTagsTask', secondary=meta_tags_task_table,
+                                backref=db.backref('tasks', lazy='dynamic'))
     todo_or_not_todo = db.Column(db.Boolean)
+
+
+class MetaTagsTask(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    text = db.Column(db.String(256))
 
 
 @login.user_loader

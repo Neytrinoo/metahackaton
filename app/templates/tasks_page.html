@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block links %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index_style.css') }}">{% endblock %}
+{% block title %}
+    {{ task.name }}
+{% endblock %}
+{% block content %}
+    {% if color_task %}
+        <div class="task">
+            <div class="task_name"><p>{{ task.name }}</p></div>
+            <div class="date_execution">
+                <p>Дата выполнения: {{ task.date_execution }}</p>
+            </div>
+            <div class="performer"><p>Исполнитель: {{ task.performer.name }}
+                [{{ task.performer.username }}]</p></div>
+            <div class="stage">
+                <p>Текущий этап: {{ execution_phase }}</p>
+            </div>
+            <div class="todo_or_not"><p>Статус: {{ todo_or_not_todo }}</p></div>
+            <div class="priority"><p>Приоритет: {{ priority }}</p></div>
+            <a href="{{ url_for('edit_task', id=task.id) }}">Редактировать</a>
+            <a href="{{ url_for('delete_task', id=task.id) }}">Удалить</a>
+        </div>
+    {% else %}
+        <div class="task_blue">
+            <div class="task_name"><p>{{ task.name }}</p></div>
+            <div class="date_execution">
+                <p>Дата выполнения: {{ task.date_execution }}</p>
+            </div>
+            <div class="performer"><p>Исполнитель: {{ task.performer.name }}
+                [{{ task.performer.username }}]</p></div>
+            <div class="stage">
+                <p>Текущий этап: {{ execution_phase }}</p>
+            </div>
+            <div class="todo_or_not"><p>Статус: {{ todo_or_not_todo }}</p></div>
+            <div class="priority"><p>Приоритет: {{ priority }}</p></div>
+            <a href="{{ url_for('edit_task', id=task.id) }}">Редактировать</a>
+            <a href="{{ url_for('delete_task', id=task.id) }}">Удалить</a>
+        </div>
+    {% endif %}
+{% endblock %}

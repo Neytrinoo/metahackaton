@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block links %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index_style.css') }}">{% endblock %}
+{% block title %}
+    Контесты
+{% endblock %}
+{% block content %}
+    {% if not current_user.is_anonymous %}
+        {% for i in range(tasks|length) %}
+            <div class="task_blue">
+                <div class="task_name"><p>{{ tasks[i].name }}</p></div>
+                <div class="date_execution">
+                    <p>Дата выполнения: {{ tasks[i].date_execution }}</p>
+                </div>
+                <div class="performer"><p>Исполнитель: {{ tasks[i].performer.name }}
+                    [{{ tasks[i].performer.username }}]</p></div>
+                <div class="stage">
+                    <p>Текущий этап: {{ execution_phase[i] }}</p>
+                </div>
+                <div class="todo_or_not"><p>Статус: {{ todo_or_not_todo[i] }}</p></div>
+                <div class="priority"><p>Приоритет: {{ priority[i] }}</p></div>
+                <a href="{{ url_for('edit_task', id=tasks[i].id) }}">Редактировать</a>
+                <a href="{{ url_for('delete_task', id=tasks[i].id) }}">Удалить</a>
+            <a href="{{ url_for('task_page', id=tasks[i].id) }}">Подробнее</a>
+            </div>
+        {% endfor %}
+        {% if tasks|length == 0 %}
+            <h1>У вас пока что не просроченных задач</h1>
+        {% endif %}
+    {% endif %}
+{% endblock %}
