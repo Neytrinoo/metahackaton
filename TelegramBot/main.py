@@ -104,12 +104,12 @@ def recieved_command(bot, updater):
                 updater.message.reply_text("Неверные данные для входа!")
         except Exception:
             updater.message.reply_text("Невозможно войти")
-    elif updater.message.text:
+    if updater.message.text:
         if session_storage[user_id]["api_key"] is None:
             updater.message.reply_text("Войдите в аккаунт!")
-    elif updater.message.text == "/task":
+            return 
+    if updater.message.text == "/task":
         resp = requests.get(f"{url}/api/tasks", params={"token": session_storage[user_id]["api_key"]}).json()["tasks"]
-        print(resp)
         if not resp:
             updater.message.reply_text("Нет задач!")
             return
