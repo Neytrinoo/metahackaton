@@ -96,8 +96,9 @@ def recieved_command(bot, updater):
             _, login, password = updater.message.text.split()
             resp = requests.post(f"{url}/api/auth", data={"username": login,
                                                           "password": password})
+            print(resp.content)
             if resp.status_code == 200:
-                session_storage[updater.message.from_user.id]["api_key"] = resp.content
+                session_storage[updater.message.from_user.id]["api_key"] = resp.json()['token']
                 session_storage[updater.message.from_user.id]["last_operation"] = 0
                 updater.message.reply_text("Успешная авторизация!")
             else:
