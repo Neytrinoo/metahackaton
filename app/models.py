@@ -7,10 +7,7 @@ meta_tags_task_table = db.Table('tags_task',
                                 db.Column('task_id', db.Integer, db.ForeignKey('task.id')),
                                 db.Column('meta_tag_task_id', db.Integer, db.ForeignKey('meta_tags_task.id'))
                                 )
-category_task_table = db.Table('category_task_table',
-                                db.Column('task_id', db.Integer, db.ForeignKey('task.id')),
-                                db.Column('category_id', db.Integer, db.ForeignKey('category_task.id'))
-                                )
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -36,18 +33,12 @@ class Task(db.Model):
     author = db.relationship('User', foreign_keys=[author_id], backref=db.backref('author_tasks', lazy=True))
     performer_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     performer = db.relationship('User', foreign_keys=[performer_id], backref=db.backref('performer_tasks', lazy=True))
-    category = db.relationship('CategoryTask', secondary=category_task_table,
-                                backref=db.backref('tasks', lazy='dynamic'))
+    category = db.Column(db.String(100))
     priority = db.Column(db.Integer)
     execution_phase = db.Column(db.Integer)
     meta_tags = db.relationship('MetaTagsTask', secondary=meta_tags_task_table,
                                 backref=db.backref('tasks', lazy='dynamic'))
     todo_or_not_todo = db.Column(db.Boolean)
-
-
-class CategoryTask(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.String(256))
 
 
 class MetaTagsTask(db.Model):

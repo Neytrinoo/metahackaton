@@ -52,11 +52,8 @@ class AddTask(FlaskForm):
     execution_phase = SelectField('Этап выполнения',
                                   choices=[('1', 'Только начал'), ('2', 'Кое-что готово'), ('3', 'Много что сделал'),
                                            ('4', 'Почти готова'), ('5', 'Полностью выполнена')])
-    all_category = CategoryTask.query.all()
-    category_to_choise = []
-    for category in all_category:
-        category_to_choise.append((str(category.id), category.text))
-    category = SelectField('Выберите категорию задачи', choices=category_to_choise)
+
+    category = StringField('Выберите категорию задачи')
     meta_tags = StringField('Мета-теги: ')
     submit = SubmitField('Добавить задачу')
 
