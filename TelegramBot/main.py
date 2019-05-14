@@ -104,12 +104,12 @@ def recieved_command(bot, updater):
                 updater.message.reply_text("Неверные данные для входа!")
         except Exception:
             updater.message.reply_text("Невозможно войти")
-    if updater.message.text:
+    elif updater.message.text:
         if session_storage[user_id]["api_key"] is None:
             updater.message.reply_text("Войдите в аккаунт!")
-            return 
+            return
     if updater.message.text == "/task":
-        resp = requests.get(f"{url}/api/tasks", params={"token": session_storage[user_id]["api_key"]}).json()["tasks"]
+        resp = requests.get(f"{url}/api/task", params={"token": session_storage[user_id]["api_key"]}).json()["tasks"]
         if not resp:
             updater.message.reply_text("Нет задач!")
             return
@@ -117,7 +117,7 @@ def recieved_command(bot, updater):
             updater.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
                                f"\nДата сдачи:{task['execution_phase']})")
     elif updater.message.text == "/expired_task":
-        resp = requests.get(f"{url}/api/tasks", params={"token": session_storage[user_id]["api_key"]}).json()
+        resp = requests.get(f"{url}/api/task", params={"token": session_storage[user_id]["api_key"]}).json()
         for task in resp:
             if task['date_execution'] <= datetime.datetime.now():
                 updater.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
