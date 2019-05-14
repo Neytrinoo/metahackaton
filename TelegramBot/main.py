@@ -5,7 +5,7 @@ import keys
 import apiai
 import requests
 
-url = "http://neytrinoo.pythonanywhere.com"
+url = "http://40.69.59.13"
 
 
 class Task:
