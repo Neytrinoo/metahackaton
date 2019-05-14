@@ -115,7 +115,7 @@ def recieved_command(bot, updater):
             updater.message.reply_text("Нет задач!")
             return
         for task in resp:
-            updater.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
+            updater.message.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
                                f"\nДата сдачи:{task['execution_phase']})")
     elif updater.message.text == "/expired_task":
         resp = requests.get(f"{url}/api/task", params={"token": session_storage[user_id]["api_key"]}).json()
