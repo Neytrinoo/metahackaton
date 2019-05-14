@@ -3,6 +3,7 @@ from flask import render_template, flash, redirect, url_for, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import current_user, login_user, logout_user, login_required
 from app.forms import *
+from app.models import *
 
 
 @app.route('/')
@@ -39,6 +40,15 @@ def register():
         login_user(user)
         return redirect(url_for('index'))
     return render_template('register.html', title='Регистрация', form=form)
+
+
+@app.route('/add-task', methods=['GET', 'POST'])
+@login_required
+def add_task():
+    form = AddTask()
+    if form.validate_on_submit():
+        task = Task(name=form.task_name.data, description=form.description.data, date_execution=form.date_execution.data, )
+    return render_template('add_task.html', form=form, title='Добавление задачи')
 
 
 @app.route('/logout')

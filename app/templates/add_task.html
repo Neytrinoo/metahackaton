@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}
+{{title}}
+{% endblock %}
+{% block links %}
+<link rel="stylesheet" href="{{url_for('static', filename='css/login_style.css')}}">
+{% endblock %}
+{% block content %}
+
+<div class="background-center">
+    <p class="register_head_text">Авторизация</p>
+    <form action="" method="post" novalidate class="form_register">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.task_name.label }}
+            {{ form.task_name(size=32) }}
+            {% for error in form.task_name.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.description.label }}
+            {{ form.description(size=32) }}
+            {% for error in form.description.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.date_execution.label }}
+            {{ form.date_execution(placeholder='Формат: дд.мм.гггг') }}
+            {% for error in form.date_execution.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.performer.label }}
+            {{ form.performer(size=32) }}
+            {% for error in form.performer.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.priority.label }}
+            {{ form.priority() }}
+            {% for error in form.priority.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.execution_phase.label }}
+            {{ form.execution_phase() }}
+            {% for error in form.execution_phase.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit(class='login_submit') }}</p>
+    </form>
+    {%endblock%}
+</div>

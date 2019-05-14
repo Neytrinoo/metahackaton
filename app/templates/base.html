@@ -18,7 +18,19 @@
         {% if current_user.is_anonymous %}
         <a href="{{url_for('login')}}" class="login">Войти</a>
         <a href="{{url_for('register')}}" class="sign_in">Зарегистрироваться</a>
-        {% endif %}
+        {% else %}
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Кнопка выпадающего списка
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <a class="dropdown-item" href="{{url_for('add_task')}}">Добавить задачу</a>
+                <a class="dropdown-item" href="#">Мои задачи</a>
+                <a class="dropdown-item" href="#">Делегированные мне задачи</a>
+            </div>
+        </div>
+        {%endif%}
     </div>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
