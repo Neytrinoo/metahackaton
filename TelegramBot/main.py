@@ -96,7 +96,6 @@ def recieved_command(bot, updater):
             _, login, password = updater.message.text.split()
             resp = requests.post(f"{url}/api/auth", data={"username": login,
                                                           "password": password})
-            print(resp.content)
             if resp.status_code == 200:
                 session_storage[updater.message.from_user.id]["api_key"] = resp.json()['token']
                 session_storage[updater.message.from_user.id]["last_operation"] = 0
@@ -105,22 +104,25 @@ def recieved_command(bot, updater):
                 updater.message.reply_text("Неверные данные для входа!")
         except Exception:
             updater.message.reply_text("Невозможно войти")
-    elif updater.message.text == "/task" and session_storage[user_id]["api_key"]:
+    elif updater.message.text:
+        if session_storage[user_id]["api_key"] is None:
+            updater.message.reply_text("Войдите в аккаунт!")
+    elif updater.message.text == "/task":
         resp = requests.get(f"{url}/api/tasks", data={"token": session_storage[user_id]["api_key"]}).json()
         for task in resp:
             updater.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
                                f"\nДата сдачи:{task['execution_phase']})")
-    elif updater.message.text == "/expired_task" and session_storage[user_id]["api_key"]:
+    elif updater.message.text == "/expired_task":
         resp = requests.get(f"{url}/api/tasks", data={"token": session_storage[user_id]["api_key"]}).json()
         for task in resp:
             if task['date_execution'] <= datetime.datetime.now():
                 updater.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
                                    f"\nДата сдачи:{task['execution_phase']})")
-    elif updater.message.text == "/add_task" and session_storage[user_id]["api_key"]:
+    elif updater.message.text == "/add_task":
         updater.message.reply_text("Добавим задачу в систему. Введите название задачи.")
         session_storage[updater.message.from_user.id]["last_operation"] = 1
         session_storage[updater.message.from_user.id]["tmp_task"] = Task()
-    elif updater.message.text.startswith("/delegate_task") and session_storage[user_id]["api_key"]:
+    elif updater.message.text.startswith("/delegate_task"):
         _, task_id, user_id = updater.message.text.split()
         resp = requests.put(f"{url}/api/task/{task_id}", data={"performer_id": user_id})
         if resp.status_code == 200:
@@ -129,8 +131,6 @@ def recieved_command(bot, updater):
             updater.message.reply_text("Такой задачи не существует")
         else:
             updater.message.reply_text("Произошла ошибка!")
-    else:
-        updater.message.reply_text("Вы не вошли в аккаунт")
 
 
 def main():
