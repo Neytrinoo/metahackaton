@@ -55,7 +55,7 @@ def recieved_message(bot, updater):
     if session_storage[user_id]["last_operation"] == 1:
         session_storage[user_id]["tmp_task"].name = updater.message.text
         updater.message.reply_text("Введите описание задачи.")
-        session_storage[user_id] = 2
+        session_storage[user_id]["last_operation"] = 2
     elif session_storage[user_id]["last_operation"] == 2:
         session_storage[user_id]["tmp_task"].description = updater.message.text
         session_storage[user_id]["last_operation"] = 3
@@ -84,18 +84,31 @@ def recieved_message(bot, updater):
 def recieved_command(bot, updater):
     user_id = updater.message.from_user.id
     if updater.message.text == "/start":
-        updater.message.reply_text("Здравствуйте! Авторизуйтесь с помощью команды /auth <Логин> <Пароль>")
-        session_storage[updater.message.from_user.id] = {
-            "api_key": None,
-            "last_operation": -1,
-            "tmp_task": None,
-            "id": None
-        }
-    elif updater.message.text.startswith("/auth"):
+        try:
+            resp = requests.post(f"{url}/api/auth", data={"username": "test",
+                                                          "password": "test",
+                                                          "telegram_id": str(user_id)}).json()["token"]
+            session_storage[updater.message.from_user.id] = {
+                "api_key": resp,
+                "last_operation": 0,
+                "tmp_task": None,
+                "id": None
+            }
+            updater.message.reply_text("Успешная авторизация!")
+        except Exception:
+            session_storage[updater.message.from_user.id] = {
+                "api_key": None,
+                "last_operation": -1,
+                "tmp_task": None,
+                "id": None
+            }
+            updater.message.reply_text("Здравствуйте! Авторизуйтесь с помощью команды /auth <Логин> <Пароль>")
+    elif updater.message.text.startswith("/auth") and not session_storage[user_id]["api_key"]:
         try:
             _, login, password = updater.message.text.split()
             resp = requests.post(f"{url}/api/auth", data={"username": login,
-                                                          "password": password})
+                                                          "password": password,
+                                                          "telegram_id": str(user_id)})
             if resp.status_code == 200:
                 session_storage[updater.message.from_user.id]["api_key"] = resp.json()['token']
                 session_storage[updater.message.from_user.id]["last_operation"] = 0
@@ -114,8 +127,8 @@ def recieved_command(bot, updater):
             updater.message.reply_text("Нет задач!")
             return
         for task in resp:
-            updater.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
-                               f"\nДата сдачи:{task['execution_phase']})")
+            updater.message.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
+                                       f"\nДата сдачи:{task['date_execution']}")
     elif updater.message.text == "/expired_task":
         resp = requests.get(f"{url}/api/task", params={"token": session_storage[user_id]["api_key"]}).json()
         for task in resp:
