@@ -17,8 +17,8 @@ class AuthResource(Resource):
     @staticmethod
     def post():
         args = auth_parser.parse_args()
-        username = args.get["username"]
-        password = args.get["password"]
+        username = args["username"]
+        password = args["password"]
         user = User.query.filter_by(username=username).first()
         if not user:
             abort(404, message="No such User")
