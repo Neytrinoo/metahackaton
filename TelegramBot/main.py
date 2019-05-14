@@ -128,6 +128,8 @@ def recieved_command(bot, updater):
             updater.message.reply_text("Такой задачи не существует")
         else:
             updater.message.reply_text("Произошла ошибка!")
+    else:
+        updater.message.reply_text("Вы не вошли в аккаунт")
 
 
 def main():
