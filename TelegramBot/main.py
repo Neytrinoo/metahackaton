@@ -51,7 +51,7 @@ def get_response(text, session_id):
         return "Произошла ошибка, попробуйте позднее."
 
 
-def recieved_message(updater, bot):
+def recieved_message(bot, updater):
     user_id = updater.message.from_user.id
     if session_storage[user_id]["last_operation"] == 1:
         session_storage[user_id]["tmp_task"].name = updater.message.text
@@ -80,7 +80,7 @@ def recieved_message(updater, bot):
             updater.message.reply_text(resp)
 
 
-def recieved_command(updater, bot):
+def recieved_command(bot, updater):
     user_id = updater.message.from_user.id
     if updater.message.text == "/start":
         updater.message.reply_text("Здравствуйте! Авторизуйтесь с помощью команды /auth <Логин> <Пароль>")
