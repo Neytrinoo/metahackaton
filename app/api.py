@@ -20,8 +20,10 @@ class AuthResource(Resource):
         args = auth_parser.parse_args()
         username = args["username"]
         password = args["password"]
-        telegram_id = args.get("telegram_id", False)
+        telegram_id = args.get("telegram_id", "-1231")
+        print(telegram_id)
         user = User.query.filter_by(telegram_id=telegram_id).first()
+        print(user, user.id, user.telegram_id)
         if user is not None:
             return jsonify({"token": user.token})
         user = User.query.filter_by(username=username).first()
