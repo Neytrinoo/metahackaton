@@ -78,6 +78,8 @@ def recieved_message(bot, updater):
                 updater.message.reply_text("Неверные данные!")
         else:
             updater.message.reply_text(resp)
+    if session_storage[user_id]["last_operation"] == -1:
+        updater.message.reply_text("Войдите в свой аккаунт с помощью /auth")
 
 
 def recieved_command(bot, updater):
