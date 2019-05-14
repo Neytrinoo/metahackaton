@@ -42,16 +42,16 @@ class LoginForm(FlaskForm):
 
 class AddTask(FlaskForm):
     task_name = StringField('Название задачи', validators=[DataRequired()])
-    description = TextAreaField('Описание задачи', validators=[DataRequired(), Length(1, 2000)])
+    description = TextAreaField('Описание задачи', validators=[DataRequired()])
     date_execution = DateField('Дата выполнения', format='%d.%m.%Y', validators=[Optional()])
     performer = StringField('Логин исполнителя', validators=[DataRequired()])
     priority = SelectField('Приоритет задачи',
-                           choices=[(1, 'Совсем не срочная'), (2, 'Не срочная'), (3, 'Обычная'), (4, 'Срочная'),
-                                    (5, 'Очень срочная')])
+                           choices=[('1', 'Совсем не срочная'), ('2', 'Не срочная'), ('3', 'Обычная'), ('4', 'Срочная'),
+                                    ('5', 'Очень срочная')])
     execution_phase = SelectField('Этап выполнения',
-                                  choices=[(1, 'Только начал'), (2, 'Кое-что готово'), (3, 'Много что сделал'),
-                                           (4, 'Почти готова'), (5, 'Полностью выполнена')])
-    category = StringField('Введите категорию задачи', validators=[Length(1, 100)])
+                                  choices=[('1', 'Только начал'), ('2', 'Кое-что готово'), ('3', 'Много что сделал'),
+                                           ('4', 'Почти готова'), ('5', 'Полностью выполнена')])
+    category = StringField('Введите категорию задачи')
     submit = SubmitField('Добавить задачу')
 
     def validate_performer(self, performer):

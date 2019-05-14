@@ -47,7 +47,16 @@ def register():
 def add_task():
     form = AddTask()
     if form.validate_on_submit():
-        task = Task(name=form.task_name.data, description=form.description.data, date_execution=form.date_execution.data, )
+        task = Task(name=form.task_name.data, description=form.description.data,
+                    date_execution=form.date_execution.data, category=form.category.data,
+                    priority=int(form.priority.data),
+                    execution_phase=int(form.execution_phase.data))
+        current_user.author_tasks.append(task)
+        db.session.add(task)
+        db.session.commit()
+        user = User.query.filter_by(username=form.performer.data).first()
+        user.performer_tasks.append(task)
+        db.session.commit()
     return render_template('add_task.html', form=form, title='Добавление задачи')
 
 

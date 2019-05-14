@@ -40,6 +40,13 @@
             {% endfor %}
         </p>
         <p>
+            {{ form.category.label }}
+            {{ form.category() }}
+            {% for error in form.category.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
             {{ form.priority.label }}
             {{ form.priority() }}
             {% for error in form.priority.errors %}
