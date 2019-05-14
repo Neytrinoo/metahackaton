@@ -5,13 +5,12 @@ import keys
 import apiai
 import requests
 
-
 url = "http://neytrinoo.pythonanywhere.com"
 
 
 class Task:
 
-    def __init__(self, id):
+    def __init__(self):
         self.name = None
         self.description = None
         self.category = None
@@ -93,15 +92,18 @@ def recieved_command(bot, updater):
             "id": None
         }
     elif updater.message.text.startswith("/auth"):
-        _, login, password = updater.message.text.split()
-        resp = requests.post(f"{url}/api/auth", data={"username": login,
-                                                      "password": password})
-        if resp.status_code == 200:
-            session_storage[updater.message.from_user.id]["api_key"] = resp.content
-            session_storage[updater.message.from_user.id]["last_operation"] = 0
-            updater.message.reply_text("Успешная авторизация!")
-        else:
-            updater.message.reply_text("Неверные данные для входа!")
+        try:
+            _, login, password = updater.message.text.split()
+            resp = requests.post(f"{url}/api/auth", data={"username": login,
+                                                          "password": password})
+            if resp.status_code == 200:
+                session_storage[updater.message.from_user.id]["api_key"] = resp.content
+                session_storage[updater.message.from_user.id]["last_operation"] = 0
+                updater.message.reply_text("Успешная авторизация!")
+            else:
+                updater.message.reply_text("Неверные данные для входа!")
+        except Exception:
+            updater.message.reply_text("Невозможно войти")
     elif updater.message.text == "/task" and session_storage[user_id]["api_key"]:
         resp = requests.get(f"{url}/api/tasks", data={"token": session_storage[user_id]["api_key"]}).json()
         for task in resp:
