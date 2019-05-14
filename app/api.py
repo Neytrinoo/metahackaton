@@ -19,6 +19,7 @@ class AuthResource(Resource):
         args = auth_parser.parse_args()
         username = args["username"]
         password = args["password"]
+        print(username, password)
         user = User.query.filter_by(username=username).first()
         if not user:
             abort(404, message="No such User")
@@ -149,8 +150,13 @@ class TaskResourceOne(Resource):
         user = User.query.filter_by(token=args["token"]).first()
         if not user:
             abort(404, message="User not found")
-        Task.query.filter_by(id=task_id).delete()
-        db.session.commit()
+        task = Task.query.filter_by(id=task_id)
+        if task.first():
+            task.delete()
+            db.session.commit()
+            return "OK!"
+        else:
+            abort(404, message="Task Not Found")
 
 
 api.add_resource(TaskResource, '/api/task')
