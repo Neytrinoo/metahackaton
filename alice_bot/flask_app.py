@@ -9,11 +9,11 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
 aiapi_key = 'b03844e61b61486badaf0a4f6f25022e'
-app = apiai.ApiAI(aiapi_key)
+apia = apiai.ApiAI(aiapi_key)
 
 
 def get_response(text, session_id):
-    request = app.text_request()
+    request = apia.text_request()
     request.lang = "ru"
     request.session_id = session_id
     request.query = text
@@ -35,25 +35,24 @@ def isDate(date_string):
 def user_in_system(id):
     return False
 
-
 def log_in(login, password):
-    url = "url"
-
+    url = "http://neytrinoo.pythonanywhere.com/api/auth"
+    print(login, password)
     params = {
         'username': login,
-        'password': 'password'
+        'password': password
     }
 
-    response = requests.post(url, params)
+    response = requests.post(url, params=params)
     code = int(response.status_code)
-    if code == 200:
+    if code == 200 or code == 500:
         token = response.json()['token']
         return code, token
     return code, False
 
 
 def get_list(token):
-    url = "url"
+    url = "http://neytrinoo.pythonanywhere.com/api/task"
 
     params = {
         'token': token
@@ -66,7 +65,7 @@ def get_list(token):
 
 
 def get_task(id, token):
-    url = 'url' + '/' + str(id)
+    url = 'http://neytrinoo.pythonanywhere.com/api/task' + '/' + str(id)
 
     params = {
         'token': token
@@ -79,7 +78,7 @@ def get_task(id, token):
 
 
 def add(name, info, category, datetime, token):
-    url = "url"
+    url = "http://neytrinoo.pythonanywhere.com/api/task/"
 
     params = {
         'token': token,
@@ -92,7 +91,7 @@ def add(name, info, category, datetime, token):
 
 
 def get_last_list(id):
-    url = "url"
+    url = "http://neytrinoo.pythonanywhere.com/api/task"
 
     params = {
         'token': token
@@ -128,9 +127,10 @@ def main():
         }
     }
 
-    response = handle_dialog(request.json, response)
+    handle_dialog(request.json, response)
 
     logging.info('Response: %r', request.json)
+    print(response)
 
     return json.dumps(response)
 
@@ -138,7 +138,7 @@ def main():
 def handle_dialog(req, res):
     user_id = req['session']['user_id']
     flag = False
-    for user in sessionStorage:
+    for user in list(sessionStorage.values()):
         if (user['id'] == user_id) and user['password']:
             flag = True
 
@@ -154,8 +154,7 @@ def handle_dialog(req, res):
                 'adding_task': False,
                 'task_name': None,
                 'task_info': None,
-                'task_category': None,
-                'datetime': None
+                'task_category': None
             }
             res['response']['text'] = 'Привет! Введи свой логин и пароль'
             return
@@ -176,9 +175,40 @@ def handle_dialog(req, res):
         ]
 
     if not sessionStorage[user_id]['login']:
-        login, password = req['request']['original_utterance'].split()
-        result, token = log_in(login, password)
-        if result == 200:
+        try:
+            if len(req['request']['command'].split()) < 2:
+                res['response']['text'] = 'Нужно так: <логин> <пароль>'
+            else:
+                login, password = req['request']['command'].split()
+                result, token = log_in(login, password)
+                print('q ' + str(result))
+                if result == 404:
+                    print('404')
+                    res['response']['text'] = 'Пользователь не найден'
+                elif result == 403:
+                    print('403')
+                    res['response']['text'] = 'Неверный пароль'
+                else:
+                    print(result)
+                    res['response']['text'] = 'Отлично'
+                    sessionStorage[user_id]['login'] = login
+                    sessionStorage[user_id]['password'] = password
+                    sessionStorage[user_id]['token'] = token
+                    sessionStorage[user_id]['suggests'] = [{
+                        'title': 'покажи просроченные задачи',
+                        'hide': True
+                    },
+                        {
+                            'title': 'покажи мои задачи',
+                            'hide': True
+                        },
+                        {
+                            'title': 'покажи добавить задачу',
+                            'hide': True
+                        }
+                    ]
+        except Exception as a:
+            print(result)
             res['response']['text'] = 'Отлично'
             sessionStorage[user_id]['login'] = login
             sessionStorage[user_id]['password'] = password
@@ -196,12 +226,8 @@ def handle_dialog(req, res):
                     'hide': True
                 }
             ]
-        else:
-            if result == 404:
-                res['response']['text'] = 'Пользователь не найден'
-            elif result == 403:
-                res['response']['text'] = 'Неверный пароль'
-    if not sessionStorage[user_id]['adding_task']:
+
+    elif not sessionStorage[user_id]['adding_task']:
         if not sessionStorage[user_id]['task_name']:
             res['response']['text'] = 'Введи описание задачи'
             sessionStorage[user_id]['task_name'] = req['request']['original_utterance']
@@ -247,6 +273,7 @@ def handle_dialog(req, res):
                 category = sessionStorage[user_id]['task_category']
                 token = sessionStorage[user_id]['token']
                 add(name, info, category, datetime, token)
+                sessionStorage[user_id]['adding_task'] = False
 
     elif req['request']['original_utterance'].lower() == 'покажи мои задачи':
         worklist = get_list(sessionStorage[user_id]['token'])
@@ -268,8 +295,7 @@ def handle_dialog(req, res):
         sessionStorage[user_id]['adding_task'] = True
         res['response']['text'] = 'Введи название задачи'
     res['response']['buttons'] = sessionStorage[user_id]['suggests']
-    return res
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=443)
