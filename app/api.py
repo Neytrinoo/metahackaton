@@ -30,6 +30,7 @@ task_parser = reqparse.RequestParser()
 task_parser.add_argument("token", required=True)
 
 put_task_parser = reqparse.RequestParser()
+put_task_parser.add_argument("token", required=True)
 put_task_parser.add_argument("name")
 put_task_parser.add_argument("category")
 put_task_parser.add_argument("description")
@@ -41,15 +42,11 @@ put_task_parser.add_argument("execution_phase")
 put_task_parser.add_argument("todo_or_not_todo")
 
 post_task_parser = reqparse.RequestParser()
+post_task_parser.add_argument("token", required=True)
 post_task_parser.add_argument("name")
 post_task_parser.add_argument("category")
 post_task_parser.add_argument("description")
 post_task_parser.add_argument("date_execution")
-post_task_parser.add_argument("author_id")
-post_task_parser.add_argument("performer_id")
-post_task_parser.add_argument("priority")
-post_task_parser.add_argument("execution_phase")
-post_task_parser.add_argument("todo_or_not_todo")
 
 
 class TaskResource(Resource):
@@ -92,11 +89,14 @@ class TaskResource(Resource):
 
     @staticmethod
     def put(task_id):
+        args = put_task_parser.parse_args()
+        user = User.query.filter_by(token=args["token"]).first()
+        if not user:
+            abort(404, message="User not found")
         task = Task.query.filter_by(id=task_id).first()
         if not task:
             abort(404, message="Not found task")
         try:
-            args = put_task_parser.parse_args()
             task.name = args.get("name", task.name)
             task.category = args.get("category", task.category)
             task.description = args.get("description", task.description)
@@ -113,22 +113,29 @@ class TaskResource(Resource):
 
     @staticmethod
     def delete(task_id):
+        args = put_task_parser.parse_args()
+        user = User.query.filter_by(token=args["token"]).first()
+        if not user:
+            abort(404, message="User not found")
         Task.query.filter_by(id=task_id).delete()
         db.session.commit()
 
     @staticmethod
     def post():
+        args = post_task_parser.parse_args()
+        user = User.query.filter_by(api_key=args["token"]).first()
+        if not user:
+            abort(403, message="Wrong User")
         try:
-            args = post_task_parser.parse_args()
             task = Task(name=args["name"],
                         description=args["description"],
                         date_execution=args["date_execution"],
-                        author_id=args["author_id"],
-                        performer_id=args["performer_id"],
+                        author_id=user.id,
+                        performer_id=user.id,
                         category=args.get("category", ""),
-                        priority=args.get("priority", "0") if args.get("priority", "0") in marks else "0",
-                        execution_phase=args["execution_phase"],
-                        todo_or_not_todo=args["todo_or_not_todo"])
+                        priority="0",
+                        execution_phase="0",
+                        todo_or_not_todo=False)
             db.session.add(task)
             db.session.commit()
             return "OK!"
