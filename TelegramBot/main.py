@@ -55,7 +55,7 @@ def recieved_message(bot, updater):
     if session_storage[user_id]["last_operation"] == 1:
         session_storage[user_id]["tmp_task"].name = updater.message.text
         updater.message.reply_text("Введите описание задачи.")
-        session_storage[user_id] = 2
+        session_storage[user_id]["last_operation"] = 2
     elif session_storage[user_id]["last_operation"] == 2:
         session_storage[user_id]["tmp_task"].description = updater.message.text
         session_storage[user_id]["last_operation"] = 3
@@ -128,7 +128,7 @@ def recieved_command(bot, updater):
             return
         for task in resp:
             updater.message.reply_text(f"ID:{task['id']}\nНазвание:{task['name']}\nОписание:{task['description']}"
-                                       f"\nДата сдачи:{task['date_execution']})")
+                                       f"\nДата сдачи:{task['date_execution']}")
     elif updater.message.text == "/expired_task":
         resp = requests.get(f"{url}/api/task", params={"token": session_storage[user_id]["api_key"]}).json()
         for task in resp:
